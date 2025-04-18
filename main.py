@@ -8,6 +8,8 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "your_openai_api_key")
 MQTT_BROKER = os.getenv("MQTT_BROKER", "your_mqtt_broker")
 MQTT_PORT = int(os.getenv("MQTT_PORT", 1883))
 MQTT_TOPIC = os.getenv("MQTT_TOPIC", "homeassistant/sensor/openai_cost")
+MQTT_USERNAME = os.getenv("MQTT_USERNAME", "your_mqtt_username")  # Added username
+MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", "your_mqtt_password")  # Added password
 
 # Function to fetch OpenAI API usage
 def fetch_openai_usage():
@@ -28,6 +30,10 @@ def fetch_openai_usage():
 # Function to publish data to MQTT
 def publish_to_mqtt(usage_data, credits_data):
     client = mqtt.Client(protocol=mqtt.MQTTv311)  # Updated to specify protocol version
+
+    # Set MQTT username and password
+    client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
+
     client.connect(MQTT_BROKER, MQTT_PORT, 60)
 
     # Prepare payload
