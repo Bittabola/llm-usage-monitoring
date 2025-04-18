@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-  llm-cost:
+  llm-usage-monitoring:
     build: .
-    container_name: llm-cost
+    container_name: llm-usage-monitoring
     ports:
       - "8080:80"
     environment:
