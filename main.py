@@ -48,6 +48,8 @@ def generate_html(usage_data, credits_data):
     # Explicitly save the HTML file in the current working directory
     with open("./usage_data.html", "w") as html_file:
         html_file.write(html_content)
+    # Add debug logging to confirm file creation
+    print("Saving HTML file to ./usage_data.html", flush=True)
 
 # Create a Flask app
 app = Flask(__name__)
@@ -68,6 +70,8 @@ def main():
         generate_html(usage_data, credits_data)
         time.sleep(3600)  # Run every hour
 
-# Run the Flask app
+# Temporarily remove the infinite loop for testing
 if __name__ == "__main__":
+    usage_data, credits_data = fetch_openai_usage()
+    generate_html(usage_data, credits_data)
     app.run(host='0.0.0.0', port=5000)
