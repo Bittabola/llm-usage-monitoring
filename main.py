@@ -1,13 +1,9 @@
-import paho.mqtt
-print(f"paho-mqtt version: {paho.mqtt.__version__}", flush=True)
-
 import requests
-import paho.mqtt.client as mqtt
 import time
 import os
 import logging
-import paho.mqtt
 import json
+from flask import Flask, send_from_directory
 
 # Configuration
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "your_openai_api_key")
@@ -52,6 +48,13 @@ def generate_html(usage_data, credits_data):
     with open("usage_data.html", "w") as html_file:
         html_file.write(html_content)
 
+# Create a Flask app
+app = Flask(__name__)
+
+@app.route('/')
+def serve_html():
+    return send_from_directory('.', 'usage_data.html')
+
 # Main loop
 def main():
     while True:
@@ -59,5 +62,6 @@ def main():
         generate_html(usage_data, credits_data)
         time.sleep(3600)  # Run every hour
 
+# Run the Flask app
 if __name__ == "__main__":
-    main()
+    app.run(host='0.0.0.0', port=5000)
