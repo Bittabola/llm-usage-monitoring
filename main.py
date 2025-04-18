@@ -38,7 +38,7 @@ def on_log(client, userdata, level, buf):
 
 # Updated publish_to_mqtt function
 def publish_to_mqtt(usage_data, credits_data):
-    client = mqtt.Client(protocol=mqtt.MQTTv5)  # Use the latest MQTT protocol version
+    client = mqtt.Client(protocol=mqtt.MQTTv5, clean_start=mqtt.MQTT_CLEAN_START_FIRST_ONLY)  # Use the latest MQTT protocol version
 
     # Set MQTT username and password
     client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
@@ -46,7 +46,7 @@ def publish_to_mqtt(usage_data, credits_data):
     # Attach logging callback
     client.on_log = on_log
 
-    client.connect(MQTT_BROKER, MQTT_PORT, 60)
+    client.connect(MQTT_BROKER, MQTT_PORT, keepalive=120)
 
     # Prepare payload
     payload = {
