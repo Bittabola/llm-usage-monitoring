@@ -13,42 +13,36 @@ MQTT_TOPIC = os.getenv("MQTT_TOPIC", "homeassistant/sensor/openai_cost")
 MQTT_USERNAME = os.getenv("MQTT_USERNAME", "your_mqtt_username")  # Added username
 MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", "your_mqtt_password")  # Added password
 
-# Function to fetch OpenAI API usage
+# Modify fetch_openai_usage to track token usage
 def fetch_openai_usage():
     headers = {"Authorization": f"Bearer {OPENAI_API_KEY}"}
-    usage_url = "https://api.openai.com/v1/dashboard/billing/usage"
-    credits_url = "https://api.openai.com/v1/dashboard/billing/credit_grants"
+    usage_url = "https://api.openai.com/v1/usage"
 
     # Fetch usage data
-    usage_response = requests.get(usage_url, headers=headers)
-    usage_data = usage_response.json()
+    response = requests.get(usage_url, headers=headers)
+    usage_data = response.json()
 
-    # Fetch credits data
-    credits_response = requests.get(credits_url, headers=headers)
-    credits_data = credits_response.json()
+    # Extract token usage from response headers or metadata
+    token_usage = usage_data.get("total_tokens", "N/A")
+    print(f"Token usage: {token_usage}", flush=True)
 
-    return usage_data, credits_data
+    return usage_data
 
-# Function to generate HTML file
-def generate_html(usage_data, credits_data):
+# Update generate_html to display token usage
+def generate_html(usage_data):
     html_content = f"""<!DOCTYPE html>
 <html>
 <head>
-    <title>OpenAI Usage</title>
+    <title>OpenAI Token Usage</title>
 </head>
 <body>
-    <h1>OpenAI Usage Data</h1>
-    <h2>Usage</h2>
+    <h1>OpenAI Token Usage</h1>
     <pre>{json.dumps(usage_data, indent=4)}</pre>
-    <h2>Credits</h2>
-    <pre>{json.dumps(credits_data, indent=4)}</pre>
 </body>
 </html>"""
 
-    # Explicitly save the HTML file in the current working directory
     with open("./usage_data.html", "w") as html_file:
         html_file.write(html_content)
-    # Add debug logging to confirm file creation
     print("Saving HTML file to ./usage_data.html", flush=True)
 
 # Create a Flask app
@@ -66,12 +60,12 @@ def serve_usage_data():
 # Main loop
 def main():
     while True:
-        usage_data, credits_data = fetch_openai_usage()
-        generate_html(usage_data, credits_data)
+        usage_data = fetch_openai_usage()
+        generate_html(usage_data)
         time.sleep(3600)  # Run every hour
 
-# Temporarily remove the infinite loop for testing
+# Update main to reflect token usage tracking
 if __name__ == "__main__":
-    usage_data, credits_data = fetch_openai_usage()
-    generate_html(usage_data, credits_data)
+    usage_data = fetch_openai_usage()
+    generate_html(usage_data)
     app.run(host='0.0.0.0', port=5000)
