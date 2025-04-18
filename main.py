@@ -3,6 +3,8 @@ import paho.mqtt.client as mqtt
 import time
 import os
 import logging
+import paho.mqtt
+print(f"paho-mqtt version: {paho.mqtt.__version__}")
 
 # Configuration
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "your_openai_api_key")
