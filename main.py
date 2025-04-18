@@ -4,6 +4,7 @@ import os
 import logging
 import json
 from flask import Flask, send_from_directory
+from datetime import datetime
 
 # Configuration
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "your_openai_api_key")
@@ -13,10 +14,11 @@ MQTT_TOPIC = os.getenv("MQTT_TOPIC", "homeassistant/sensor/openai_cost")
 MQTT_USERNAME = os.getenv("MQTT_USERNAME", "your_mqtt_username")  # Added username
 MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", "your_mqtt_password")  # Added password
 
-# Modify fetch_openai_usage to track token usage
+# Modify fetch_openai_usage to include the required 'date' query parameter
 def fetch_openai_usage():
     headers = {"Authorization": f"Bearer {OPENAI_API_KEY}"}
-    usage_url = "https://api.openai.com/v1/usage"
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    usage_url = f"https://api.openai.com/v1/usage?date={current_date}"
 
     # Fetch usage data
     response = requests.get(usage_url, headers=headers)
