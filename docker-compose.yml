@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  llm-cost:
+    build: .
+    container_name: llm-cost
+    ports:
+      - "8080:80"
+    environment:
+      - OPENAI_API_KEY=your_openai_api_key
+      - MQTT_BROKER=your_mqtt_broker
+      - MQTT_PORT=1883
+      - MQTT_TOPIC=homeassistant/sensor/openai_cost
