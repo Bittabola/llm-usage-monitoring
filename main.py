@@ -5,9 +5,15 @@ import logging
 import json
 from flask import Flask, send_from_directory
 from datetime import datetime, timedelta
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Configuration
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "your_openai_api_key")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+if not OPENAI_API_KEY:
+    raise ValueError("OPENAI_API_KEY is not set. Please add it to the .env file.")
 
 # Modify fetch_openai_usage to fetch data for the trailing 30 days and handle empty responses
 def fetch_openai_usage():
