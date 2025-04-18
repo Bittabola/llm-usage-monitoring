@@ -1,5 +1,5 @@
 import paho.mqtt
-print(f"paho-mqtt version: {paho.mqtt.__version__}")
+print(f"paho-mqtt version: {paho.mqtt.__version__}", flush=True)
 
 import requests
 import paho.mqtt.client as mqtt
