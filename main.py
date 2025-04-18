@@ -37,16 +37,55 @@ def fetch_openai_usage():
 
     return usage_data
 
-# Update generate_html to display a message if no data is available
+# Update generate_html to render data in a user-readable table format
 def generate_html(usage_data):
+    table_rows = ""
+    for entry in usage_data.get("data", []):
+        table_rows += f"""
+        <tr>
+            <td>{entry.get('aggregation_timestamp', 'N/A')}</td>
+            <td>{entry.get('operation', 'N/A')}</td>
+            <td>{entry.get('n_requests', 'N/A')}</td>
+            <td>{entry.get('n_context_tokens_total', 'N/A')}</td>
+            <td>{entry.get('n_generated_tokens_total', 'N/A')}</td>
+        </tr>
+        """
+
     html_content = f"""<!DOCTYPE html>
 <html>
 <head>
     <title>OpenAI Token Usage</title>
+    <style>
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+        }}
+        th, td {{
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }}
+        th {{
+            background-color: #f2f2f2;
+        }}
+    </style>
 </head>
 <body>
     <h1>OpenAI Token Usage</h1>
-    <pre>{json.dumps(usage_data, indent=4)}</pre>
+    <table>
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Operation</th>
+                <th>Requests</th>
+                <th>Context Tokens</th>
+                <th>Generated Tokens</th>
+            </tr>
+        </thead>
+        <tbody>
+            {table_rows}
+        </tbody>
+    </table>
 </body>
 </html>"""
 
