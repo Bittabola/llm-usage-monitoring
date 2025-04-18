@@ -15,7 +15,7 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 if not OPENAI_API_KEY:
     raise ValueError("OPENAI_API_KEY is not set. Please add it to the .env file.")
 
-# Modify fetch_openai_usage to fetch data for the trailing 30 days and handle empty responses
+# Modify fetch_openai_usage to include the 'date' query parameter
 def fetch_openai_usage():
     headers = {"Authorization": f"Bearer {OPENAI_API_KEY}"}
     end_date = datetime.now()
@@ -24,6 +24,10 @@ def fetch_openai_usage():
 
     # Fetch usage data
     response = requests.get(usage_url, headers=headers)
+    if response.status_code != 200:
+        print(f"Error fetching usage data: {response.json()}", flush=True)
+        return {"error": response.json()}
+
     usage_data = response.json()
 
     # Handle empty responses
