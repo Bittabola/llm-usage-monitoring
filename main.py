@@ -4,7 +4,7 @@ import os
 import logging
 import json
 from flask import Flask, send_from_directory
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Configuration
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "your_openai_api_key")
@@ -14,23 +14,26 @@ MQTT_TOPIC = os.getenv("MQTT_TOPIC", "homeassistant/sensor/openai_cost")
 MQTT_USERNAME = os.getenv("MQTT_USERNAME", "your_mqtt_username")  # Added username
 MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", "your_mqtt_password")  # Added password
 
-# Modify fetch_openai_usage to include the required 'date' query parameter
+# Modify fetch_openai_usage to fetch data for the trailing 30 days and handle empty responses
 def fetch_openai_usage():
     headers = {"Authorization": f"Bearer {OPENAI_API_KEY}"}
-    current_date = datetime.now().strftime("%Y-%m-%d")
-    usage_url = f"https://api.openai.com/v1/usage?date={current_date}"
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=30)
+    usage_url = f"https://api.openai.com/v1/usage?start_date={start_date.strftime('%Y-%m-%d')}&end_date={end_date.strftime('%Y-%m-%d')}"
 
     # Fetch usage data
     response = requests.get(usage_url, headers=headers)
     usage_data = response.json()
 
-    # Extract token usage from response headers or metadata
-    token_usage = usage_data.get("total_tokens", "N/A")
-    print(f"Token usage: {token_usage}", flush=True)
+    # Handle empty responses
+    if not usage_data.get("data"):
+        usage_data["message"] = "No usage data available for the trailing 30 days."
+
+    print(f"Fetched usage data: {usage_data}", flush=True)
 
     return usage_data
 
-# Update generate_html to display token usage
+# Update generate_html to display a message if no data is available
 def generate_html(usage_data):
     html_content = f"""<!DOCTYPE html>
 <html>
