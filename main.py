@@ -7,6 +7,7 @@ import time
 import os
 import logging
 import paho.mqtt
+import json
 
 # Configuration
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "your_openai_api_key")
@@ -32,38 +33,30 @@ def fetch_openai_usage():
 
     return usage_data, credits_data
 
-# Enable logging for MQTT client
-def on_log(client, userdata, level, buf):
-    print(f"MQTT Log: {buf}")
+# Function to generate HTML file
+def generate_html(usage_data, credits_data):
+    html_content = f"""<!DOCTYPE html>
+<html>
+<head>
+    <title>OpenAI Usage</title>
+</head>
+<body>
+    <h1>OpenAI Usage Data</h1>
+    <h2>Usage</h2>
+    <pre>{json.dumps(usage_data, indent=4)}</pre>
+    <h2>Credits</h2>
+    <pre>{json.dumps(credits_data, indent=4)}</pre>
+</body>
+</html>"""
 
-# Remove the invalid 'clean_start' parameter and ensure proper cleanup of the MQTT client
-def publish_to_mqtt(usage_data, credits_data):
-    client = mqtt.Client(protocol=mqtt.MQTTv5)  # Use the latest MQTT protocol version
-
-    # Set MQTT username and password
-    client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
-
-    # Attach logging callback
-    client.on_log = on_log
-
-    try:
-        client.connect(MQTT_BROKER, MQTT_PORT, 60)
-
-        # Prepare payload
-        payload = {
-            "usage": usage_data,
-            "credits": credits_data
-        }
-
-        client.publish(MQTT_TOPIC, str(payload))
-    finally:
-        client.disconnect()  # Ensure proper cleanup of the MQTT client
+    with open("usage_data.html", "w") as html_file:
+        html_file.write(html_content)
 
 # Main loop
 def main():
     while True:
         usage_data, credits_data = fetch_openai_usage()
-        publish_to_mqtt(usage_data, credits_data)
+        generate_html(usage_data, credits_data)
         time.sleep(3600)  # Run every hour
 
 if __name__ == "__main__":
