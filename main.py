@@ -45,7 +45,8 @@ def generate_html(usage_data, credits_data):
 </body>
 </html>"""
 
-    with open("usage_data.html", "w") as html_file:
+    # Explicitly save the HTML file in the current working directory
+    with open("./usage_data.html", "w") as html_file:
         html_file.write(html_content)
 
 # Create a Flask app
