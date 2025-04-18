@@ -8,11 +8,6 @@ from datetime import datetime, timedelta
 
 # Configuration
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "your_openai_api_key")
-MQTT_BROKER = os.getenv("MQTT_BROKER", "your_mqtt_broker")
-MQTT_PORT = int(os.getenv("MQTT_PORT", 1883))
-MQTT_TOPIC = os.getenv("MQTT_TOPIC", "homeassistant/sensor/openai_cost")
-MQTT_USERNAME = os.getenv("MQTT_USERNAME", "your_mqtt_username")  # Added username
-MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", "your_mqtt_password")  # Added password
 
 # Modify fetch_openai_usage to fetch data for the trailing 30 days and handle empty responses
 def fetch_openai_usage():
