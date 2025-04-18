@@ -2,6 +2,7 @@ import requests
 import paho.mqtt.client as mqtt
 import time
 import os
+import logging
 
 # Configuration
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "your_openai_api_key")
@@ -27,12 +28,19 @@ def fetch_openai_usage():
 
     return usage_data, credits_data
 
-# Function to publish data to MQTT
+# Enable logging for MQTT client
+def on_log(client, userdata, level, buf):
+    print(f"MQTT Log: {buf}")
+
+# Updated publish_to_mqtt function
 def publish_to_mqtt(usage_data, credits_data):
-    client = mqtt.Client(protocol=mqtt.MQTTv311)  # Updated to specify protocol version
+    client = mqtt.Client(protocol=mqtt.MQTTv5)  # Use the latest MQTT protocol version
 
     # Set MQTT username and password
     client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
+
+    # Attach logging callback
+    client.on_log = on_log
 
     client.connect(MQTT_BROKER, MQTT_PORT, 60)
 
