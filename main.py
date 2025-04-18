@@ -36,9 +36,9 @@ def fetch_openai_usage():
 def on_log(client, userdata, level, buf):
     print(f"MQTT Log: {buf}")
 
-# Updated publish_to_mqtt function
+# Remove the invalid 'clean_start' parameter and ensure proper cleanup of the MQTT client
 def publish_to_mqtt(usage_data, credits_data):
-    client = mqtt.Client(protocol=mqtt.MQTTv5, clean_start=mqtt.MQTT_CLEAN_START_FIRST_ONLY)  # Use the latest MQTT protocol version
+    client = mqtt.Client(protocol=mqtt.MQTTv5)  # Use the latest MQTT protocol version
 
     # Set MQTT username and password
     client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
@@ -46,16 +46,18 @@ def publish_to_mqtt(usage_data, credits_data):
     # Attach logging callback
     client.on_log = on_log
 
-    client.connect(MQTT_BROKER, MQTT_PORT, keepalive=120)
+    try:
+        client.connect(MQTT_BROKER, MQTT_PORT, 60)
 
-    # Prepare payload
-    payload = {
-        "usage": usage_data,
-        "credits": credits_data
-    }
+        # Prepare payload
+        payload = {
+            "usage": usage_data,
+            "credits": credits_data
+        }
 
-    client.publish(MQTT_TOPIC, str(payload))
-    client.disconnect()
+        client.publish(MQTT_TOPIC, str(payload))
+    finally:
+        client.disconnect()  # Ensure proper cleanup of the MQTT client
 
 # Main loop
 def main():
