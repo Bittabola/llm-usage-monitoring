@@ -51,8 +51,13 @@ def generate_html(usage_data, credits_data):
 # Create a Flask app
 app = Flask(__name__)
 
+# Ensure the generated HTML file is served correctly
 @app.route('/')
 def serve_html():
+    return send_from_directory('.', 'usage_data.html')
+
+@app.route('/usage_data.html')
+def serve_usage_data():
     return send_from_directory('.', 'usage_data.html')
 
 # Main loop
