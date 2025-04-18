@@ -37,13 +37,15 @@ def fetch_openai_usage():
 
     return usage_data
 
-# Update generate_html to render data in a user-readable table format
+# Update generate_html to convert timestamps to human-readable format
 def generate_html(usage_data):
     table_rows = ""
     for entry in usage_data.get("data", []):
+        timestamp = entry.get('aggregation_timestamp', 'N/A')
+        human_readable_timestamp = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S') if timestamp != 'N/A' else 'N/A'
         table_rows += f"""
         <tr>
-            <td>{entry.get('aggregation_timestamp', 'N/A')}</td>
+            <td>{human_readable_timestamp}</td>
             <td>{entry.get('operation', 'N/A')}</td>
             <td>{entry.get('n_requests', 'N/A')}</td>
             <td>{entry.get('n_context_tokens_total', 'N/A')}</td>
