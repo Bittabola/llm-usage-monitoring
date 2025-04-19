@@ -6,6 +6,7 @@ import json
 from flask import Flask, send_from_directory
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
+import pytz
 
 # Load environment variables from .env file
 load_dotenv()
@@ -15,34 +16,32 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 if not OPENAI_API_KEY:
     raise ValueError("OPENAI_API_KEY is not set. Please add it to the .env file.")
 
-# Modify fetch_openai_usage to use the 'date' query parameter
 def fetch_openai_usage():
     headers = {"Authorization": f"Bearer {OPENAI_API_KEY}"}
-    today = datetime.now()
-    usage_url = f"https://api.openai.com/v1/usage?date={today.strftime('%Y-%m-%d')}"
+    mountain_tz = pytz.timezone("US/Mountain")
+    usage_data = {"data": []}
 
-    # Fetch usage data
-    response = requests.get(usage_url, headers=headers)
-    if response.status_code != 200:
-        print(f"Error fetching usage data: {response.json()}", flush=True)
-        return {"error": response.json()}
+    # Fetch data for the last 30 days
+    for i in range(30):
+        date = (datetime.now() - timedelta(days=i)).strftime('%Y-%m-%d')
+        usage_url = f"https://api.openai.com/v1/usage?date={date}"
 
-    usage_data = response.json()
-
-    # Handle empty responses
-    if not usage_data.get("data"):
-        usage_data["message"] = "No usage data available for the specified date."
+        response = requests.get(usage_url, headers=headers)
+        if response.status_code == 200:
+            daily_data = response.json().get("data", [])
+            usage_data["data"].extend(daily_data)
+        else:
+            print(f"Error fetching usage data for {date}: {response.json()}", flush=True)
 
     print(f"Fetched usage data: {usage_data}", flush=True)
-
     return usage_data
 
-# Update generate_html to convert timestamps to human-readable format
 def generate_html(usage_data):
+    mountain_tz = pytz.timezone("US/Mountain")
     table_rows = ""
     for entry in usage_data.get("data", []):
         timestamp = entry.get('aggregation_timestamp', 'N/A')
-        human_readable_timestamp = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S') if timestamp != 'N/A' else 'N/A'
+        human_readable_timestamp = datetime.fromtimestamp(timestamp, mountain_tz).strftime('%Y-%m-%d %H:%M:%S') if timestamp != 'N/A' else 'N/A'
         table_rows += f"""
         <tr>
             <td>{human_readable_timestamp}</td>
@@ -70,7 +69,55 @@ def generate_html(usage_data):
         th {{
             background-color: #f2f2f2;
         }}
+        .pagination {{
+            margin-top: 20px;
+            text-align: center;
+        }}
+        .pagination button {{
+            margin: 0 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }}
     </style>
+    <script>
+        let currentPage = 1;
+        const rowsPerPage = 20;
+
+        function showPage(page) {{
+            const rows = document.querySelectorAll("tbody tr");
+            const totalRows = rows.length;
+            const totalPages = Math.ceil(totalRows / rowsPerPage);
+
+            // Ensure page is within valid range
+            if (page < 1 || page > totalPages) return;
+
+            // Update page info
+            document.getElementById("page-info").innerText = `Page ${page} of ${totalPages}`;
+
+            rows.forEach((row, index) => {{
+                row.style.display = (index >= (page - 1) * rowsPerPage && index < page * rowsPerPage) ? "" : "none";
+            }});
+
+            currentPage = page;
+        }}
+
+        function nextPage() {{
+            const rows = document.querySelectorAll("tbody tr");
+            const totalPages = Math.ceil(rows.length / rowsPerPage);
+            if (currentPage < totalPages) showPage(currentPage + 1);
+        }}
+
+        function prevPage() {{
+            if (currentPage > 1) showPage(currentPage - 1);
+        }}
+
+        document.addEventListener("DOMContentLoaded", () => {{
+            const rows = document.querySelectorAll("tbody tr");
+            const totalPages = Math.ceil(rows.length / rowsPerPage);
+            document.getElementById("page-info").innerText = `Page 1 of ${totalPages}`;
+            showPage(1);
+        }});
+    </script>
 </head>
 <body>
     <h1>OpenAI Token Usage</h1>
@@ -88,6 +135,11 @@ def generate_html(usage_data):
             {table_rows}
         </tbody>
     </table>
+    <div class="pagination">
+        <button onclick="prevPage()">Previous</button>
+        <span id="page-info"></span>
+        <button onclick="nextPage()">Next</button>
+    </div>
 </body>
 </html>"""
 
